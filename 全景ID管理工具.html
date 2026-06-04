@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>全景ID管理工具</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-primary: #fafbfc;
+      --bg-card: #ffffff;
+      --text-primary: #1a1a2e;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow: 0 4px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+    }
+
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    .header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 32px;
+    }
+
+    .title { 
+      font-size: 28px; 
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .actions { display: flex; gap: 12px; }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary { 
+      background: linear-gradient(135deg, var(--accent), #6366f1); 
+      color: white; 
+    }
+    .btn-primary:hover { 
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-secondary { 
+      background: var(--bg-card); 
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { 
+      background: var(--border-light);
+      color: var(--text-primary);
+    }
+
+    .btn-danger { 
+      background: linear-gradient(135deg, var(--danger), #dc2626); 
+      color: white; 
+    }
+    .btn-danger:hover { 
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-success { 
+      background: linear-gradient(135deg, var(--success), #059669); 
+      color: white; 
+    }
+    .btn-success:hover { 
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+    }
+
+    table { 
+      width: 100%; 
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    th, td { 
+      padding: 10px 16px; 
+      text-align: left; 
+    }
+
+    th { 
+      background: linear-gradient(180deg, var(--border-light), transparent);
+      font-weight: 600; 
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:not(:last-child) td {
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    tbody tr {
+      transition: all 0.15s ease;
+    }
+
+    tbody tr:hover { 
+      background: linear-gradient(90deg, var(--border-light), transparent);
+    }
+
+    input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      font-size: 14px;
+      transition: all 0.2s ease;
+      background: var(--bg-card);
+    }
+
+    input:focus { 
+      outline: none; 
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .id-input {
+      width: 160px !important;
+      border: none;
+      border-bottom: 2px solid var(--border);
+      border-radius: 0;
+      padding: 4px 0;
+      background: transparent;
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    .id-input:focus {
+      border-bottom-color: var(--accent);
+      box-shadow: none;
+    }
+
+    .floor-tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #2563eb;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-left: 8px;
+      font-weight: 600;
+      vertical-align: middle;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .floor-tag:hover {
+      background: #bfdbfe;
+      transform: scale(1.05);
+    }
+
+    .floor-tag:empty {
+      padding: 4px;
+      width: 24px;
+      height: 24px;
+      margin-left: 8px;
+    }
+
+    .floor-edit {
+      width: 60px !important;
+      margin-left: 8px;
+      font-size: 13px;
+      padding: 4px 8px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px 28px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .stat-card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .stat-icon.blue { background: #dbeafe; color: #2563eb; }
+    .stat-icon.green { background: #d1fae5; color: #059669; }
+    .stat-icon.red { background: #fee2e2; color: #dc2626; }
+
+    .stat-content { display: flex; flex-direction: column; }
+    .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .stat-value { 
+      font-size: 24px; 
+      font-weight: 700; 
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .copy-btn { 
+      padding: 6px 10px; 
+      font-size: 11px;
+      margin-left: auto;
+    }
+
+    .main-content {
+      position: relative;
+    }
+
+    .table-area {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .sidebar {
+      position: fixed;
+      right: 24px;
+      top: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 240px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text-primary);
+      color: white;
+      padding: 14px 24px;
+      border-radius: var(--radius-sm);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .toast.show { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+
+    .returned { 
+      background: linear-gradient(90deg, #fef2f2, transparent) !important;
+    }
+
+    .returned td { color: var(--text-muted); }
+
+    .import-panel {
+      position: fixed;
+      left: -320px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 320px;
+      background: var(--bg-card);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      box-shadow: var(--shadow-lg);
+      padding: 24px;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+      border: 1px solid var(--border-light);
+    }
+
+    .import-panel.open { left: 0; }
+
+    .import-toggle {
+      position: absolute;
+      right: -48px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 96px;
+      background: linear-gradient(135deg, var(--accent), #6366f1);
+      color: white;
+      border: none;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      cursor: pointer;
+      font-size: 14px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+
+    .import-toggle:hover { 
+      background: linear-gradient(135deg, var(--accent-hover), #4f46e5);
+    }
+
+    .import-header { 
+      font-weight: 700; 
+      margin-bottom: 16px; 
+      color: var(--text-primary);
+      font-size: 16px;
+    }
+
+    #importText {
+      width: 100%;
+      height: 140px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 13px;
+      resize: none;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    #importText:focus { 
+      outline: none; 
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .import-actions { display: flex; gap: 12px; }
+    .import-actions button { flex: 1; font-size: 14px; padding: 10px 16px; }
+
+    .images-input {
+      width: 100px !important;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    @media (max-width: 1024px) {
+      .main-content {
+        padding-right: 0;
+      }
+      .sidebar {
+        position: static;
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        margin-top: 24px;
+      }
+      .sidebar .stat-card {
+        flex: 1;
+        min-width: 200px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 24px 16px; }
+      .header { flex-direction: column; gap: 16px; align-items: flex-start; }
+      .stat-card { padding: 16px 20px; }
+      th, td { padding: 12px 14px; }
+      .id-input { width: 120px !important; }
+      .sidebar {
+        flex-direction: column;
+      }
+      .sidebar .stat-card {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">📋 全景ID管理工具</h1>
+      <div class="actions">
+        <button class="btn-danger" onclick="clearAll()">清空全部</button>
+      </div>
+    </div>
+
+  <!-- 左侧浮动导入面板 -->
+  <div class="import-panel" id="importPanel">
+    <div class="import-header">📥 批量导入ID</div>
+    <textarea id="importText" placeholder="粘贴全景ID列表&#10;支持换行/空格/逗号分隔"></textarea>
+    <div class="import-actions">
+      <button class="btn-primary" onclick="importIds()">导入</button>
+      <button class="btn-secondary" onclick="document.getElementById('importText').value = ''">清空</button>
+    </div>
+    <button class="import-toggle" onclick="toggleImportPanel()">批量导入</button>
+  </div>
+
+  <div class="main-content">
+    <div class="table-area">
+      <div class="card" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>全景ID</th>
+              <th>图片数量</th>
+              <th>操作</th>
+              <th>详情页</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- 数据行动态生成 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="stat-card">
+        <div class="stat-icon blue">📋</div>
+        <div class="stat-content">
+          <span class="stat-label">总计ID数</span>
+          <span class="stat-value" id="totalIds">0</span>
+        </div>
+        <button class="btn-secondary copy-btn" onclick="copyTotalIds()">复制</button>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">🖼</div>
+        <div class="stat-content">
+          <span class="stat-label">图片总数</span>
+          <span class="stat-value" id="totalImages">0</span>
+        </div>
+        <button class="btn-secondary copy-btn" onclick="copyTotalImages()">复制</button>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red">↩</div>
+        <div class="stat-content">
+          <span class="stat-label">退回数量</span>
+          <span class="stat-value" id="totalReturned">0</span>
+        </div>
+        <button class="btn-secondary copy-btn" onclick="copyTotalReturned()">复制</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+  <script>
+    const STORAGE_KEY = 'panorama_ids';
+    const tableBody = document.getElementById('tableBody');
+    const totalIdsEl = document.getElementById('totalIds');
+    const totalImagesEl = document.getElementById('totalImages');
+    const totalReturnedEl = document.getElementById('totalReturned');
+    const toastEl = document.getElementById('toast');
+
+    // 切换导入面板显示/隐藏
+    function toggleImportPanel() {
+      const panel = document.getElementById('importPanel');
+      panel.classList.toggle('open');
+    }
+
+    // 显示提示
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2000);
+    }
+
+    // 保存数据到本地存储
+    function saveData() {
+      const rows = [];
+      document.querySelectorAll('#tableBody tr').forEach(row => {
+        const id = row.querySelector('.id-input').value.trim();
+        const floorTag = row.querySelector('.floor-tag');
+        const floorInput = row.querySelector('.floor-input');
+        const floor = floorInput ? floorInput.value.trim() : (floorTag ? floorTag.textContent.trim() : '');
+        const images = row.querySelector('.images-input').value.trim();
+        const returned = row.classList.contains('returned');
+        if (id) {
+          rows.push({ id, floor, images, returned });
+        }
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+      updateStats();
+    }
+
+    // 加载数据
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const rows = JSON.parse(saved);
+        rows.forEach(data => addRow(data));
+      }
+    }
+
+    // 添加行
+    function addRow(data = {}) {
+      const row = document.createElement('tr');
+      if (data.returned) row.classList.add('returned');
+      const floorText = data.floor || '';
+      row.innerHTML = `
+        <td>
+          <input class="id-input" type="text" value="${data.id || ''}" placeholder="输入全景ID" oninput="saveData()">
+          <span class="floor-tag" onclick="editFloorTag(this)">${floorText || ''}</span>
+        </td>
+        <td class="images-cell"><input class="images-input" type="number" value="${data.images || ''}" placeholder="图片数量" min="0" oninput="handleImageInput(this)"></td>
+        <td>
+          <button class="btn-secondary" onclick="clearImages(this)">退回</button>
+          <button class="btn-secondary" onclick="deleteRow(this)">删除</button>
+        </td>
+        <td>
+          <button class="btn-secondary" onclick="openDetail(this)">🔗 打开详情页</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+      saveData();
+    }
+
+
+    // 编辑楼层标签
+    function editFloorTag(tag) {
+      const idCell = tag.parentElement;
+      const value = tag.textContent;
+      const input = document.createElement('input');
+      input.className = 'floor-input floor-edit';
+      input.value = value;
+      input.onblur = function() { saveFloorTag(this); };
+      input.onkeyup = function(e) { if (e.key === 'Enter') { this.blur(); } };
+      idCell.replaceChild(input, tag);
+      input.focus();
+    }
+
+    // 保存楼层标签
+    function saveFloorTag(input) {
+      const idCell = input.parentElement;
+      const floorValue = input.value.trim();
+      
+      const tag = document.createElement('span');
+      tag.className = 'floor-tag';
+      tag.textContent = floorValue;
+      tag.onclick = function() { editFloorTag(this); };
+      idCell.replaceChild(tag, input);
+      
+      saveData();
+    }
+
+    // 处理图片数量输入
+    function handleImageInput(input) {
+      const row = input.parentElement.parentElement;
+      if (input.value.trim()) {
+        row.classList.remove('returned');
+      }
+      saveData();
+    }
+
+    // 打开详情页
+    function openDetail(btn) {
+      const row = btn.parentElement.parentElement;
+      const id = row.querySelector('.id-input').value.trim();
+      if (id) {
+        const url = `https://opencms.anjuke.com/webapp/vr/make/detail?panoId=${id}`;
+        window.open(url, '_blank');
+      } else {
+        showToast('请先输入全景ID');
+      }
+    }
+
+    // 退回（清空图片数量）
+    function clearImages(btn) {
+      const row = btn.parentElement.parentElement;
+      const input = row.querySelector('.images-input');
+      input.value = '';
+      row.classList.add('returned');
+      saveData();
+      showToast('已退回');
+    }
+
+    // 删除行
+    function deleteRow(btn) {
+      const row = btn.parentElement.parentElement;
+      row.remove();
+      saveData();
+      showToast('已删除');
+    }
+
+    // 清空全部
+    function clearAll() {
+      if (confirm('确定要清空所有数据吗？')) {
+        tableBody.innerHTML = '';
+        localStorage.removeItem(STORAGE_KEY);
+        updateStats();
+        showToast('已清空');
+      }
+    }
+
+    // 更新统计
+    function updateStats() {
+      const rows = document.querySelectorAll('#tableBody tr');
+      let totalIds = 0;
+      let totalImages = 0;
+      let totalReturned = 0;
+
+      rows.forEach(row => {
+        const id = row.querySelector('.id-input').value.trim();
+        const images = parseInt(row.querySelector('.images-input').value) || 0;
+        const returned = row.classList.contains('returned');
+        if (id) {
+          totalIds++;
+          totalImages += images;
+          if (returned) totalReturned++;
+        }
+      });
+
+      totalIdsEl.textContent = totalIds;
+      totalImagesEl.textContent = totalImages;
+      totalReturnedEl.textContent = totalReturned;
+    }
+
+    // 复制总计ID数
+    function copyTotalIds() {
+      const rows = document.querySelectorAll('#tableBody tr');
+      const ids = [];
+      rows.forEach(row => {
+        const id = row.querySelector('.id-input').value.trim();
+        if (id && !isNaN(id)) ids.push(id);
+      });
+      navigator.clipboard.writeText(ids.join('\n'));
+      showToast('ID列表已复制');
+    }
+
+    // 复制图片总数
+    function copyTotalImages() {
+      navigator.clipboard.writeText(totalImagesEl.textContent);
+      showToast('图片总数已复制');
+    }
+
+    // 复制退回数量
+    function copyTotalReturned() {
+      navigator.clipboard.writeText(totalReturnedEl.textContent);
+      showToast('退回数量已复制');
+    }
+
+    // 批量导入ID
+    function importIds() {
+      const text = document.getElementById('importText').value;
+      if (!text.trim()) {
+        showToast('请输入ID列表');
+        return;
+      }
+
+      // 提取所有数字ID（支持换行、空格、逗号分隔）
+      const ids = text.match(/\b\d{8,12}\b/g) || [];
+      
+      if (ids.length === 0) {
+        showToast('未找到有效的ID');
+        return;
+      }
+
+      // 获取已存在的ID，避免重复
+      const existingIds = new Set();
+      document.querySelectorAll('.id-input').forEach(input => {
+        const val = input.value.trim();
+        if (val) existingIds.add(val);
+      });
+
+      // 添加新ID
+      let addedCount = 0;
+      ids.forEach(id => {
+        if (!existingIds.has(id)) {
+          addRow({ id: id.trim(), images: '', completed: false });
+          addedCount++;
+        }
+      });
+
+      // 清空输入框
+      document.getElementById('importText').value = '';
+      showToast(`成功导入 ${addedCount} 个ID`);
+    }
+
+    // 页面加载时初始化
+    loadData();
+  </script>
+</body>
+</html>
